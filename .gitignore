@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+THINK/
+ENV/
+env/
+
+# Environment variables
+.env
+
+# Output files
+*.json
+!global_unique_ids.json
+*.csv
+*.log
+
+# Screenshots
+error_screenshots/
+screenshots/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Chrome/Selenium
+*.exe
+chromedriver
+undetected_chromedriver.exe
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+REQUESTS_APPROACH/

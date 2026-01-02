@@ -1,0 +1,44 @@
+# Systemd Service File for Property Harvester
+# Location: /etc/systemd/system/harvester.service
+#
+# Installation:
+# 1. Copy this file to /etc/systemd/system/harvester.service
+# 2. Edit paths below to match your installation
+# 3. Run: systemctl daemon-reload
+# 4. Run: systemctl enable harvester
+# 5. Run: systemctl start harvester
+# 6. Check: systemctl status harvester
+# 7. View logs: journalctl -u harvester -f
+
+[Unit]
+Description=Property Link Harvester Service
+After=network.target
+Documentation=file:///root/DEPLOYMENT_GUIDE.md
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root
+Environment="PATH=/root/venv/bin"
+EnvironmentFile=-/root/.env
+ExecStart=/root/venv/bin/python3 /root/production_harvester.py
+Restart=on-failure
+RestartSec=30
+StandardOutput=append:/root/harvester_service.log
+StandardError=append:/root/harvester_service.log
+
+# Timeout settings
+TimeoutStartSec=60
+TimeoutStopSec=30
+
+# Resource limits (adjust as needed)
+MemoryLimit=2G
+CPUQuota=80%
+
+# Security (optional)
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+

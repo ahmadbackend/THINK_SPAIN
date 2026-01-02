@@ -1,0 +1,165 @@
+===============================================================================
+  ✅ SELENIUM SCRAPER READY - NEW APPROACH
+===============================================================================
+
+WHY SELENIUM?
+-------------
+The website uses JavaScript "Show More" button that dynamically loads content.
+The requests-based approach can't handle this because:
+  ✗ Content loaded via JavaScript (not in initial HTML)
+  ✗ Pagination requires clicking buttons (not just changing URL parameters)
+  ✗ Website likely has bot detection
+
+THE NEW APPROACH
+----------------
+✓ Selenium with undetected-chromedriver (bypasses detection)
+✓ Selenium-stealth (additional anti-detection)
+✓ Click "Show More" button repeatedly
+✓ Harvest all property links: href="/property-for-sale/XXXXXXX"
+✓ Save to CSV with deduplication
+
+TEST SETUP (200 CLICKS)
+-----------------------
+Purpose: Verify the ~1,500 property limit and check for duplicates
+URL: https://www.thinkspain.com/property-for-sale/malaga-city
+Clicks: 200 times on "Show More" button
+Output: harvested_links_test.csv
+
+FEATURES
+--------
+✓ Undetected Chrome - Bypasses bot detection
+✓ Stealth mode - Additional anti-detection measures
+✓ Headless optional - Can run with/without browser window
+✓ Auto-deduplication - Uses set() to track unique links only
+✓ Pagination loop detection - Stops when no new links for 5 consecutive clicks
+✓ Progress reports - Every 10 clicks
+✓ CSV output - property_id, url columns
+✓ Detailed logging - All activities logged
+
+HOW TO RUN
+----------
+Option 1: Batch file
+  .\run_selenium_test.bat
+
+Option 2: Direct Python
+  py -3.12 selenium_harvester.py
+
+Option 3: Headless mode (edit script)
+  Change: HEADLESS = True
+  Then run: py -3.12 selenium_harvester.py
+
+WHAT IT DOES
+------------
+1. Opens Chrome browser (undetected)
+2. Loads: https://www.thinkspain.com/property-for-sale/malaga-city
+3. Harvests initial page property links
+4. Clicks "Show More" button 200 times
+5. After each click:
+   - Waits 1.5 seconds for content to load
+   - Harvests new property links
+   - Logs progress
+6. Detects pagination loops (no new links for 5 clicks)
+7. Saves all unique links to CSV
+8. Closes browser
+
+EXPECTED RESULTS
+----------------
+Based on your observation that ~1,500 properties is the limit:
+
+Scenario 1: Hard Limit Reached
+  - Clicks: 1-94 (1,500 ÷ 16 per page)
+  - Unique links: ~1,500
+  - Status: "Show More" button disappears or stops working
+
+Scenario 2: Pagination Loop
+  - Clicks: 1-100+
+  - Unique links: ~1,500
+  - Status: After 100 clicks, same properties repeat
+  - Detection: No new links for 5 consecutive clicks → STOP
+
+Scenario 3: Different Count
+  - Will tell us the actual limit for malaga-city
+
+OUTPUT FILES
+------------
+1. harvested_links_test.csv
+   Format:
+   property_id,url
+   8917427,https://www.thinkspain.com/property-for-sale/8917427
+   9123456,https://www.thinkspain.com/property-for-sale/9123456
+   ...
+
+2. selenium_scraper.log
+   Detailed activity log with timestamps
+
+VERIFICATION AFTER TEST
+-----------------------
+Check the CSV file to verify:
+✓ Total unique properties harvested
+✓ No duplicates (set() handles this)
+✓ Property ID format is correct
+✓ URLs are clean
+
+Then we can:
+1. Analyze if there's a 1,500 limit
+2. Check for duplicate patterns
+3. Decide next steps for full harvesting
+
+CONFIGURATION OPTIONS
+---------------------
+Edit selenium_harvester.py to change:
+
+Line 19: TEST_CLICKS = 200
+  → Change to 50, 100, 500, etc.
+
+Line 20: HEADLESS = False
+  → Change to True for headless mode
+
+Line 21: START_URL = "https://www.thinkspain.com/property-for-sale/malaga-city"
+  → Change to any property search URL
+
+Line 22: OUTPUT_CSV = "harvested_links_test.csv"
+  → Change output filename
+
+NEXT STEPS AFTER TEST
+----------------------
+Once we verify the test results, we can:
+
+1. If 1,500 limit confirmed:
+   → Scrape all 114 sub-links separately
+   → Each sub-link gets up to 1,500 unique properties
+   → Global deduplication across all CSVs
+
+2. If no limit:
+   → Run full scraper on main URL
+   → Click until no more "Show More"
+   → Harvest all 225K+ properties
+
+3. If pagination loops:
+   → Detection already implemented
+   → Will stop automatically
+
+===============================================================================
+READY TO TEST!
+===============================================================================
+
+Run: .\run_selenium_test.bat
+
+or
+
+Run: py -3.12 selenium_harvester.py
+
+Watch the browser:
+  - Chrome opens automatically
+  - Navigates to malaga-city
+  - Clicks "Show More" 200 times
+  - Harvests links after each click
+  - Saves to CSV
+  - Closes automatically
+
+Check results:
+  - harvested_links_test.csv (property links)
+  - selenium_scraper.log (activity log)
+
+===============================================================================
+
