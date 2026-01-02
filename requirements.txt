@@ -1,0 +1,27 @@
+# Production Requirements for Managed App Deployment (DigitalOcean App Platform, Heroku, etc.)
+# All versions pinned for stability
+
+# Selenium & WebDriver
+selenium==4.15.2
+undetected-chromedriver==3.5.4
+selenium-stealth==1.0.6
+webdriver-manager==4.0.1
+
+# Data Processing
+pandas==2.1.4
+numpy==1.26.4
+
+# System Monitoring
+psutil==5.9.6
+
+# HTTP & Requests
+requests==2.31.0
+urllib3==2.1.0
+certifi==2024.8.30
+
+# Utilities
+python-dotenv==1.0.0
+
+# Note: Managed app platforms automatically install Chrome/Chromium
+# No manual Chrome installation needed (unlike manual droplet deployment)
+
