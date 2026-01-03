@@ -30,6 +30,12 @@ if screen -list | grep -q thinkspain; then
     echo "✓ Screen session closed"
 fi
 
+# Optionally stop Xvfb (commented out - you may want to keep it running)
+# if pgrep -f "Xvfb :99" > /dev/null; then
+#     pkill -f "Xvfb :99"
+#     echo "✓ Xvfb stopped"
+# fi
+
 echo ""
 echo "Done!"
 

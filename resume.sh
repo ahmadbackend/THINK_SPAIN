@@ -25,10 +25,32 @@ fi
 
 # Activate venv
 if [ ! -d "venv" ]; then
-    echo "ERROR: Virtual environment not found. Run setup first."
+    echo "ERROR: Virtual environment not found. Run ./start.sh first."
     exit 1
 fi
 
+source venv/bin/activate
+
+# Ensure Xvfb is running
+if ! pgrep -f "Xvfb :99" > /dev/null; then
+    echo "Starting Xvfb virtual display..."
+    Xvfb :99 -screen 0 1920x1080x24 > /dev/null 2>&1 &
+    sleep 2
+fi
+
+export DISPLAY=:99
+
+# Run in screen
+screen -dmS thinkspain bash -c "export DISPLAY=:99; cd ~/THINK_SPAIN; source venv/bin/activate; python3 production_harvester.py"
+
+echo "✓ Scraper resumed in background (screen session: thinkspain)"
+echo ""
+echo "Commands:"
+echo "  screen -r thinkspain           # See live output"
+echo "  ./status.sh                    # Check progress"
+echo "  ./stop.sh                      # Stop scraper"
+echo ""
+echo "Safe to close SSH now!"
 source venv/bin/activate
 
 # Run in background with screen

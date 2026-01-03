@@ -1,0 +1,93 @@
+═══════════════════════════════════════════════════════════════════════
+FILES TO KEEP IN GITHUB (Essential Files Only)
+═══════════════════════════════════════════════════════════════════════
+
+✓ REQUIRED FILES:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+production_harvester.py          # Main scraper script
+requirements_production.txt      # Python dependencies
+.gitignore                       # Git ignore rules
+
+start.sh                         # Start scraper (Xvfb + screen)
+resume.sh                        # Resume from checkpoint
+stop.sh                          # Stop scraper
+status.sh                        # Check progress
+
+VM_QUICKSTART.txt                # Quick setup guide (this file)
+
+✗ DELETE THESE BEFORE PUSH:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+THINK/                           # Virtual environment folder
+__pycache__/                     # Python cache
+error_screenshots/               # Screenshots folder
+venv/                            # Another venv folder
+
+harvested_properties.json        # Output data
+scraper_progress.json            # Progress checkpoint
+*.log                            # All log files
+
+All .txt files except VM_QUICKSTART.txt:
+  BACKGROUND_GUIDE.txt
+  GCP_QUICKSTART.txt
+  GITHUB_FILES_LIST.txt
+  PROXY_INFO.txt
+  README_GCP.txt
+  SELENIUM_APPROACH.txt
+  SIMPLE_COMMANDS.txt
+  TIMING_UPDATE.txt
+  TROUBLESHOOTING.txt
+  VM_FIX_NOW.txt
+  git_commands.txt
+
+Redundant shell scripts:
+  apply_fix.sh
+  diagnose.sh
+  fix_vm.sh
+  run_background.sh
+  run_gcp.sh
+  run_production.sh
+  run_screen.sh
+  run_simple.sh
+  setup_gcp.sh
+  test_no_proxy.sh
+  test_proxy.sh
+
+requirements.txt                 # Old requirements
+requirements_selenium.txt        # Redundant requirements
+
+═══════════════════════════════════════════════════════════════════════
+QUICK CLEANUP COMMANDS (Run on Windows before push):
+═══════════════════════════════════════════════════════════════════════
+
+# Delete virtual environments and cache
+Remove-Item -Recurse -Force THINK, __pycache__, venv, error_screenshots -ErrorAction SilentlyContinue
+
+# Delete output files
+Remove-Item harvested_properties.json, scraper_progress.json, *.log -ErrorAction SilentlyContinue
+
+# Delete documentation files
+Remove-Item BACKGROUND_GUIDE.txt, GCP_QUICKSTART.txt, GITHUB_FILES_LIST.txt, PROXY_INFO.txt, README_GCP.txt, SELENIUM_APPROACH.txt, SIMPLE_COMMANDS.txt, TIMING_UPDATE.txt, TROUBLESHOOTING.txt, VM_FIX_NOW.txt, git_commands.txt -ErrorAction SilentlyContinue
+
+# Delete redundant scripts
+Remove-Item apply_fix.sh, diagnose.sh, fix_vm.sh, run_background.sh, run_gcp.sh, run_production.sh, run_screen.sh, run_simple.sh, setup_gcp.sh, test_no_proxy.sh, test_proxy.sh, requirements.txt, requirements_selenium.txt -ErrorAction SilentlyContinue
+
+# Now push to GitHub
+git add .
+git commit -m "Clean deployment version with Xvfb headed mode"
+git push origin main
+
+═══════════════════════════════════════════════════════════════════════
+FINAL GITHUB STRUCTURE:
+═══════════════════════════════════════════════════════════════════════
+THINK_SPAIN/
+├── production_harvester.py
+├── requirements_production.txt
+├── .gitignore
+├── start.sh
+├── resume.sh
+├── stop.sh
+├── status.sh
+└── VM_QUICKSTART.txt
+
+═══════════════════════════════════════════════════════════════════════
+

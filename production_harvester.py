@@ -8,9 +8,9 @@ Production Selenium Harvester with Full Error Handling & Resume Support
 - Auto-save after each click
 - Screenshot on errors only
 - Environment configuration
-- DigitalOcean ready
+- GCP VM ready with Xvfb virtual display
+- Headed mode for better detection avoidance
 """
-import tempfile
 
 import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
@@ -33,28 +33,24 @@ import random
 # CONFIGURATION - Can be overridden with environment variables
 # ============================================================================
 MAX_CLICKS = int(os.getenv('MAX_CLICKS', '15627'))
-HEADLESS = os.getenv('HEADLESS', 'true').lower() == 'true'  # Default true for GCP
+HEADLESS = False  # Always run with head mode using Xvfb virtual display
 START_URL = os.getenv('START_URL', 'https://www.thinkspain.com/property-for-sale')
 OUTPUT_FILE = os.getenv('OUTPUT_FILE', 'harvested_properties.json')
 PROGRESS_FILE = os.getenv('PROGRESS_FILE', 'scraper_progress.json')
 LOG_FILE = os.getenv('LOG_FILE', 'production_scraper.log')
 ERROR_SCREENSHOT_DIR = os.getenv('ERROR_SCREENSHOT_DIR', 'error_screenshots')
-MAX_CONSECUTIVE_NO_NEW = 5  # Stop after 5 consecutive clicks with no new links (increased for slower loading)
+MAX_CONSECUTIVE_NO_NEW = 5  # Stop after 5 consecutive clicks with no new links
 RETRY_ATTEMPTS = 3  # Retry failed clicks 3 times
 CLICK_TIMEOUT = 30  # Maximum seconds to wait for a click to complete
 MAX_RUNTIME_HOURS = int(os.getenv('MAX_RUNTIME_HOURS', '12'))  # Maximum runtime
 
 # Realistic timing (human-like behavior)
-MIN_WAIT_BETWEEN_CLICKS = float(os.getenv('MIN_WAIT_BETWEEN_CLICKS', '3'))  # Minimum seconds between clicks
-MAX_WAIT_BETWEEN_CLICKS = float(os.getenv('MAX_WAIT_BETWEEN_CLICKS', '7'))  # Maximum seconds between clicks
-PAGE_LOAD_WAIT = float(os.getenv('PAGE_LOAD_WAIT', '5'))  # Wait for content to load after click
+MIN_WAIT_BETWEEN_CLICKS = float(os.getenv('MIN_WAIT_BETWEEN_CLICKS', '5'))  # Minimum seconds between clicks
+MAX_WAIT_BETWEEN_CLICKS = float(os.getenv('MAX_WAIT_BETWEEN_CLICKS', '10'))  # Maximum seconds between clicks
+PAGE_LOAD_WAIT = float(os.getenv('PAGE_LOAD_WAIT', '7'))  # Wait for content to load after click
 
-# Proxy configuration (Oxylabs)
-PROXY_USERNAME = os.getenv('PROXY_USERNAME', 'brandonks100_vM2Tc')
-PROXY_PASSWORD = os.getenv('PROXY_PASSWORD', 'YlDB55GgTr3FVm5_')
-PROXY_SERVER = os.getenv('PROXY_SERVER', 'http://us-pr.oxylabs.io:10000')
-PROXY_COUNTRIES = ['US', 'GB', 'CA', 'DE', 'FR', 'ES', 'IT']  # Rotate through these countries
-USE_PROXY = os.getenv('USE_PROXY', 'true').lower() == 'true'  # Enable/disable proxy
+# Proxy disabled - not needed
+USE_PROXY = False
 
 # ============================================================================
 # SETUP
@@ -81,18 +77,15 @@ class ProductionHarvester:
         self.shutdown_requested = False
         self.consecutive_no_new = 0
         self.last_checkpoint_click = 0
-        self._tmp_profile = ""
-        self.current_proxy_country = PROXY_COUNTRIES[0]
-        self.proxy_rotation_count = 0
 
         # Setup signal handlers for graceful shutdown
         signal.signal(signal.SIGINT, self.signal_handler)
         signal.signal(signal.SIGTERM, self.signal_handler)
 
         logger.info("=" * 70)
-        logger.info("PRODUCTION SELENIUM HARVESTER - REALISTIC TIMING")
+        logger.info("PRODUCTION SELENIUM HARVESTER - HEADED MODE WITH XVFB")
         logger.info(f"Max clicks: {MAX_CLICKS}")
-        logger.info(f"Headless: {HEADLESS}")
+        logger.info(f"Headed Mode: TRUE (Xvfb virtual display)")
         logger.info(f"Start URL: {START_URL}")
         logger.info(f"Output: {OUTPUT_FILE}")
         logger.info(f"Timing: {MIN_WAIT_BETWEEN_CLICKS}-{MAX_WAIT_BETWEEN_CLICKS}s between clicks")
@@ -134,59 +127,6 @@ class ProductionHarvester:
         except Exception as e:
             logger.error(f"Failed to take screenshot: {e}")
 
-    def rotate_proxy(self):
-        """Rotate to next proxy country and restart browser"""
-        if not USE_PROXY:
-            logger.info("Proxy not enabled, skipping rotation")
-            return False
-
-        try:
-            # Get next country
-            current_index = PROXY_COUNTRIES.index(self.current_proxy_country)
-            next_index = (current_index + 1) % len(PROXY_COUNTRIES)
-            new_country = PROXY_COUNTRIES[next_index]
-
-            logger.info("=" * 70)
-            logger.info(f"🔄 ROTATING PROXY: {self.current_proxy_country} → {new_country}")
-            logger.info("=" * 70)
-
-            # Close current browser
-            if self.driver:
-                try:
-                    self.driver.quit()
-                    logger.info("✓ Closed previous browser")
-                except Exception as e:
-                    logger.warning(f"Error closing browser: {e}")
-                time.sleep(2)
-
-            # Update proxy country
-            self.current_proxy_country = new_country
-            self.proxy_rotation_count += 1
-
-            # Setup new driver with new proxy
-            if not self.setup_driver(use_proxy=True):
-                logger.error("Failed to setup driver with new proxy")
-                return False
-
-            # Reload page
-            if not self.load_page(START_URL):
-                logger.error("Failed to reload page with new proxy")
-                return False
-
-            # Wait for page to settle
-            time.sleep(random.uniform(3, 5))
-
-            logger.info(f"✓ Proxy rotated successfully (rotation #{self.proxy_rotation_count})")
-            logger.info("=" * 70)
-
-            # Reset consecutive no-new counter after proxy rotation
-            self.consecutive_no_new = 0
-
-            return True
-
-        except Exception as e:
-            logger.error(f"Error rotating proxy: {e}", exc_info=True)
-            return False
 
     def load_progress(self):
         """Load progress from checkpoint file"""
@@ -196,7 +136,8 @@ class ProductionHarvester:
                     data = json.load(f)
                     self.clicks_performed = data.get('clicks_performed', 0)
                     self.property_links = set(data.get('property_links', []))
-                    logger.info(f"✓ Resumed from checkpoint: {self.clicks_performed} clicks, {len(self.property_links)} properties")
+                    self.consecutive_no_new = data.get('consecutive_no_new', 0)  # Load the counter too
+                    logger.info(f"✓ Resumed from checkpoint: {self.clicks_performed} clicks, {len(self.property_links)} properties, {self.consecutive_no_new} consecutive no-new")
             except Exception as e:
                 logger.error(f"Failed to load progress: {e}")
                 logger.info("Starting fresh...")
@@ -231,27 +172,12 @@ class ProductionHarvester:
         except Exception as e:
             logger.error(f"Failed to save output: {e}")
 
-    def setup_driver(self, use_proxy=True):
-        """Setup undetected Chrome with stealth and error handling"""
-        logger.info("Setting up Chrome driver...")
-
-        if USE_PROXY and use_proxy:
-            logger.info(f"Using proxy: {self.current_proxy_country}")
+    def setup_driver(self):
+        """Setup undetected Chrome with stealth for headed mode"""
+        logger.info("Setting up Chrome driver in headed mode...")
 
         try:
             options = uc.ChromeOptions()
-
-            if HEADLESS:
-                options.add_argument('--headless=new')
-                self._tmp_profile = tempfile.mkdtemp(prefix="uc_profile_12")
-                options.add_argument(f"--user-data-dir={self._tmp_profile}")
-
-            # Proxy configuration
-            if USE_PROXY and use_proxy:
-                proxy_user = f"customer-{PROXY_USERNAME}-cc-{self.current_proxy_country}"
-                proxy_url = f"http://{proxy_user}:{PROXY_PASSWORD}@us-pr.oxylabs.io:10000"
-                options.add_argument(f'--proxy-server={proxy_url}')
-                logger.info(f"Proxy configured: {self.current_proxy_country}")
 
             # Chrome options for stability and stealth
             options.add_argument('--disable-blink-features=AutomationControlled')
@@ -263,7 +189,7 @@ class ProductionHarvester:
             options.add_argument('--disable-popup-blocking')
             options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
 
-            # Additional options for DigitalOcean/Linux
+            # Additional options for Linux/GCP
             options.add_argument('--disable-setuid-sandbox')
             options.add_argument('--remote-debugging-port=9222')
 
@@ -434,6 +360,7 @@ class ProductionHarvester:
         try:
             # Load previous progress if resuming
             self.load_progress()
+            resume_from_click = self.clicks_performed  # Store how many clicks were already done
 
             # Setup driver
             if not self.setup_driver():
@@ -450,8 +377,31 @@ class ProductionHarvester:
             logger.info(f"Waiting {initial_wait:.1f}s for initial page to fully load...")
             time.sleep(initial_wait)
 
-            # Harvest initial page
-            logger.info("\nHarvesting initial page...")
+            # RESUME LOGIC: Skip to the page where we left off
+            if resume_from_click > 0:
+                logger.info("=" * 70)
+                logger.info(f"RESUMING: Fast-forwarding through {resume_from_click} already-clicked pages...")
+                logger.info("(Not harvesting, just clicking to reach last position)")
+                logger.info("=" * 70)
+
+                for skip_click in range(resume_from_click):
+                    if not self.click_show_more():
+                        logger.error(f"Failed to skip to click {skip_click + 1}. Starting from here...")
+                        break
+
+                    # Short delay during fast-forward (faster than normal)
+                    if (skip_click + 1) % 10 == 0:
+                        logger.info(f"  Fast-forwarded {skip_click + 1}/{resume_from_click} clicks...")
+                    time.sleep(random.uniform(1, 2))  # Faster during resume
+
+                logger.info("=" * 70)
+                logger.info(f"✓ REACHED POSITION: Click {resume_from_click}")
+                logger.info("Now starting fresh harvest from this point...")
+                logger.info("=" * 70)
+                time.sleep(2)
+
+            # Harvest current page (whether starting fresh or after resume)
+            logger.info("\nHarvesting current page...")
             self.harvest_property_links()
             self.save_progress()  # Save after initial harvest
             self.save_output()     # Save to output file
@@ -472,22 +422,8 @@ class ProductionHarvester:
 
                 # Check consecutive no-new threshold
                 if self.consecutive_no_new >= MAX_CONSECUTIVE_NO_NEW:
-                    # Try rotating proxy before giving up
-                    if USE_PROXY and self.clicks_performed < MAX_CLICKS:
-                        logger.warning(f"⚠ {MAX_CONSECUTIVE_NO_NEW} consecutive clicks with no new links")
-                        logger.info("Attempting proxy rotation to find more properties...")
-
-                        if self.rotate_proxy():
-                            logger.info("✓ Proxy rotated, continuing with new IP...")
-                            # Harvest current page with new proxy
-                            self.harvest_property_links()
-                            continue
-                        else:
-                            logger.warning("Failed to rotate proxy, stopping...")
-                            break
-                    else:
-                        logger.info(f"✓ Reached limit: {MAX_CONSECUTIVE_NO_NEW} consecutive clicks with no new links")
-                        break
+                    logger.info(f"✓ Reached limit: {MAX_CONSECUTIVE_NO_NEW} consecutive clicks with no new links")
+                    break
 
                 # Click Show More
                 if not self.click_show_more():
@@ -506,8 +442,6 @@ class ProductionHarvester:
                     logger.info(f"\n--- Progress Report ---")
                     logger.info(f"Clicks: {self.clicks_performed}/{MAX_CLICKS}")
                     logger.info(f"Properties: {len(self.property_links)}")
-                    if USE_PROXY:
-                        logger.info(f"Current proxy: {self.current_proxy_country} (rotations: {self.proxy_rotation_count})")
                     logger.info(f"Runtime: {(datetime.now() - self.start_time).total_seconds() / 60:.1f} min")
                     self.log_memory_usage()
                     logger.info(f"---\n")
@@ -542,9 +476,6 @@ class ProductionHarvester:
             runtime = (datetime.now() - self.start_time).total_seconds() / 60
             logger.info(f"\n✓ Total clicks: {self.clicks_performed}")
             logger.info(f"✓ Total properties: {len(self.property_links)}")
-            if USE_PROXY:
-                logger.info(f"✓ Proxy rotations: {self.proxy_rotation_count}")
-                logger.info(f"✓ Final proxy: {self.current_proxy_country}")
             logger.info(f"✓ Runtime: {runtime:.1f} minutes")
             logger.info(f"✓ Output saved to: {OUTPUT_FILE}")
             logger.info(f"✓ Progress saved to: {PROGRESS_FILE}")
