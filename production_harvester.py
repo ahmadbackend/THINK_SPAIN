@@ -10,6 +10,7 @@ Production Selenium Harvester with Full Error Handling & Resume Support
 - Environment configuration
 - DigitalOcean ready
 """
+import tempfile
 
 import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
@@ -73,6 +74,7 @@ class ProductionHarvester:
         self.shutdown_requested = False
         self.consecutive_no_new = 0
         self.last_checkpoint_click = 0
+        self._tmp_profile=""
 
         # Setup signal handlers for graceful shutdown
         signal.signal(signal.SIGINT, self.signal_handler)
@@ -175,6 +177,8 @@ class ProductionHarvester:
 
             if HEADLESS:
                 options.add_argument('--headless=new')
+                self._tmp_profile = tempfile.mkdtemp(prefix="uc_profile_12")
+                options.add_argument(f"--user-data-dir={self._tmp_profile}")
 
             # Chrome options for stability and stealth
             options.add_argument('--disable-blink-features=AutomationControlled')
