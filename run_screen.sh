@@ -3,6 +3,13 @@
 
 cd ~/THINK_SPAIN
 
+# Check if already running
+if pgrep -f "production_harvester.py" > /dev/null; then
+    echo "⚠ Scraper is already running!"
+    echo "Run ./status.sh to check or ./stop.sh to stop it first"
+    exit 1
+fi
+
 # Check if screen is installed
 if ! command -v screen &> /dev/null; then
     echo "Installing screen..."

@@ -1,0 +1,40 @@
+========================================
+SIMPLE COMMANDS FOR YOUR VM
+========================================
+
+START SCRAPER (Background, survives SSH disconnect):
+  ./run_screen.sh
+
+RESUME FROM WHERE IT STOPPED:
+  ./resume.sh
+
+CHECK IF RUNNING:
+  ./status.sh
+
+SEE LIVE OUTPUT:
+  screen -r thinkspain
+  (Press Ctrl+A then D to detach)
+
+STOP SCRAPER:
+  ./stop.sh
+
+VIEW LOGS:
+  tail -f production_scraper.log
+
+========================================
+WHAT TO DO NOW:
+========================================
+
+1. Push from PC:
+   git add . && git commit -m "Background scripts" && git push
+
+2. On VM:
+   cd ~/THINK_SPAIN
+   git pull origin main
+   chmod +x *.sh
+   ./resume.sh
+
+3. Close SSH safely - scraper keeps running!
+
+========================================
+
