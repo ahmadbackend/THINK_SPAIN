@@ -1,0 +1,173 @@
+================================================================================
+PROXY SUPPORT ADDED - AUTOMATIC ROTATION WHEN NO NEW PROPERTIES FOUND
+================================================================================
+
+✅ WHAT WAS ADDED:
+-----------------
+
+1. OXYLABS PROXY CONFIGURATION:
+   - Username: brandonks100_vM2Tc
+   - Password: YlDB55GgTr3FVm5_
+   - Server: us-pr.oxylabs.io:10000
+   - Format: customer-{username}-cc-{country}
+
+2. MULTI-COUNTRY PROXY ROTATION:
+   - Rotates through: US → GB → CA → DE → FR → ES → IT
+   - Cycles back to start after all countries used
+   - Changes browser fingerprint with each rotation
+
+3. AUTOMATIC ROTATION TRIGGER:
+   - When 5 consecutive clicks find no new properties
+   - AND max clicks not yet reached
+   - Automatically rotates to next proxy country
+   - Resets consecutive counter after rotation
+   - Continues scraping with new IP
+
+4. PROXY TRACKING & REPORTING:
+   - Shows current proxy country in logs
+   - Counts total proxy rotations
+   - Reports in progress updates every 10 clicks
+   - Shows final proxy used in summary
+
+================================================================================
+HOW IT WORKS:
+================================================================================
+
+Normal Flow:
+1. Starts with US proxy
+2. Clicks "Load More" button
+3. Harvests property links
+4. Repeats until MAX_CLICKS or no button
+
+When No New Properties Found (5 consecutive times):
+1. ⚠ Warning: "5 consecutive clicks with no new links"
+2. 🔄 "ROTATING PROXY: US → GB"
+3. Closes current browser
+4. Opens new browser with GB proxy
+5. Reloads page
+6. Resets consecutive counter to 0
+7. Continues clicking from where it left off
+
+Benefits:
+✅ Gets past IP-based restrictions
+✅ Website thinks it's different users from different countries
+✅ Finds more properties by appearing as multiple browsers
+✅ Automatic - no manual intervention needed
+
+================================================================================
+ENVIRONMENT VARIABLES (Optional):
+================================================================================
+
+# Enable/disable proxy (default: enabled)
+export USE_PROXY=true
+
+# Custom proxy credentials
+export PROXY_USERNAME=your_username
+export PROXY_PASSWORD=your_password
+export PROXY_SERVER=http://us-pr.oxylabs.io:10000
+
+# Or disable proxy completely
+export USE_PROXY=false
+
+================================================================================
+LOG OUTPUT EXAMPLES:
+================================================================================
+
+Startup:
+```
+======================================================================
+PRODUCTION SELENIUM HARVESTER - REALISTIC TIMING + PROXY
+Max clicks: 500
+Proxy enabled: True
+Proxy countries: US, GB, CA, DE, FR, ES, IT
+======================================================================
+Setting up Chrome driver...
+Using proxy: US
+Proxy configured: US
+✓ Driver setup complete
+```
+
+During Scraping:
+```
+✓ Click #15 - Show More clicked
+  Harvested 50 new links | Total: 750
+
+--- Progress Report ---
+Clicks: 20/500
+Properties: 1000
+Current proxy: US (rotations: 0)
+---
+```
+
+When Rotating:
+```
+  ⚠ No new links | Consecutive: 5/5
+⚠ 5 consecutive clicks with no new links
+Attempting proxy rotation to find more properties...
+
+======================================================================
+🔄 ROTATING PROXY: US → GB
+======================================================================
+✓ Closed previous browser
+Setting up Chrome driver...
+Using proxy: GB
+Proxy configured: GB
+✓ Driver setup complete
+Loading page: https://www.thinkspain.com/property-for-sale
+✓ Page loaded
+✓ Proxy rotated successfully (rotation #1)
+======================================================================
+
+✓ Proxy rotated, continuing with new IP...
+  Harvested 45 new links | Total: 1045
+```
+
+Final Summary:
+```
+======================================================================
+FINALIZING
+======================================================================
+✓ Total clicks: 85
+✓ Total properties: 4250
+✓ Proxy rotations: 3
+✓ Final proxy: DE
+✓ Runtime: 142.5 minutes
+✓ Output saved to: harvested_properties.json
+======================================================================
+```
+
+================================================================================
+WHAT TO DO NOW:
+================================================================================
+
+1. Push to GitHub:
+   cd G:\THINK_SPAIN
+   git add production_harvester.py
+   git commit -m "Add Oxylabs proxy with automatic rotation"
+   git push origin main
+
+2. On VM, pull and run:
+   cd ~/THINK_SPAIN
+   git pull origin main
+   ./resume.sh
+
+3. Monitor proxy rotations:
+   tail -f production_scraper.log | grep -E "PROXY|rotation"
+
+The scraper will now:
+- Use Oxylabs proxy (US by default)
+- Automatically rotate through 7 countries when stuck
+- Find WAY more properties than before!
+
+================================================================================
+DISABLE PROXY (if needed):
+================================================================================
+
+On VM, create .env file:
+echo "USE_PROXY=false" > .env
+
+Then run normally:
+./resume.sh
+
+================================================================================
+
