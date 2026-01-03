@@ -1,0 +1,150 @@
+================================================================================
+TROUBLESHOOTING: SCRAPER STOPS AT 23 CLICKS
+================================================================================
+
+ISSUE: Scraper runs for only 0.3 minutes, finds 129 properties, then stops.
+LIKELY CAUSE: Proxy authentication issue OR website blocking
+
+================================================================================
+STEP 1: DIAGNOSE THE PROBLEM
+================================================================================
+
+Run diagnostic script to see what's happening:
+
+chmod +x diagnose.sh test_proxy.sh test_no_proxy.sh
+./diagnose.sh
+
+Look for:
+- Proxy authentication errors
+- "Show More button not found" messages
+- "Consecutive no-new" reaching 5/5 very quickly
+
+================================================================================
+STEP 2: TEST PROXY CONNECTION
+================================================================================
+
+./test_proxy.sh
+
+Expected output:
+```json
+{
+  "ip": "123.45.67.89",
+  "city": "New York",
+  "region": "New York",
+  "country": "US",
+  ...
+}
+```
+
+If you see errors like:
+- "407 Proxy Authentication Required"
+- "Connection refused"
+- "Timeout"
+
+→ Proxy credentials are wrong or expired
+
+================================================================================
+STEP 3: TEST WITHOUT PROXY
+================================================================================
+
+./test_no_proxy.sh
+
+This will run WITHOUT proxy to see if that's the issue.
+
+If it works better without proxy:
+→ Proxy is the problem
+
+If it still stops at ~23-30 clicks:
+→ Website is detecting/blocking the scraper
+
+================================================================================
+SOLUTIONS:
+================================================================================
+
+SOLUTION A: Disable Proxy (if proxy is causing issues)
+-------------------------------------------------------
+echo "USE_PROXY=false" > .env
+./resume.sh
+
+SOLUTION B: Increase Consecutive No-New Threshold
+--------------------------------------------------
+The scraper stops after 5 consecutive clicks with no new properties.
+Maybe the website loads slowly. Try increasing it:
+
+echo "MAX_CONSECUTIVE_NO_NEW=10" > .env
+./resume.sh
+
+SOLUTION C: Slow Down Even More
+--------------------------------
+Maybe clicks are still too fast:
+
+echo "MIN_WAIT_BETWEEN_CLICKS=5" > .env
+echo "MAX_WAIT_BETWEEN_CLICKS=10" >> .env
+echo "PAGE_LOAD_WAIT=8" >> .env
+./resume.sh
+
+SOLUTION D: Check if 129 is Actually All Properties
+----------------------------------------------------
+Open the website manually and check:
+- Is there actually a "Load More" button?
+- How many properties are there total?
+- Maybe 129 is all of them?
+
+Visit: https://www.thinkspain.com/property-for-sale
+Count how many times you can click "Show More"
+
+================================================================================
+MOST LIKELY FIX (Based on your symptoms):
+================================================================================
+
+The proxy might be getting blocked. Try this:
+
+cd ~/THINK_SPAIN
+
+# Create .env file to disable proxy temporarily
+cat > .env << 'EOF'
+USE_PROXY=false
+MIN_WAIT_BETWEEN_CLICKS=5
+MAX_WAIT_BETWEEN_CLICKS=10
+PAGE_LOAD_WAIT=8
+EOF
+
+# Stop any running instances
+./stop.sh
+
+# Start fresh
+./run_screen.sh
+
+# Watch it run
+screen -r thinkspain
+
+# Detach with: Ctrl+A then D
+
+================================================================================
+CHECK RESULTS:
+================================================================================
+
+After running for 5-10 minutes:
+
+./status.sh
+
+If it's progressing past 23 clicks:
+✅ Proxy was the issue - keep it disabled
+
+If it still stops at ~23 clicks:
+❌ Website might have changed or blocking all scrapers
+
+================================================================================
+IMMEDIATE ACTION FOR YOU:
+================================================================================
+
+Run these commands on your VM:
+
+cd ~/THINK_SPAIN
+chmod +x diagnose.sh test_proxy.sh test_no_proxy.sh
+./diagnose.sh
+
+Then send me the output and I'll tell you exactly what to do next!
+
+================================================================================
+
