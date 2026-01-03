@@ -26,6 +26,7 @@ import logging
 from datetime import datetime
 import psutil
 from pathlib import Path
+import random
 
 # ============================================================================
 # CONFIGURATION - Can be overridden with environment variables
@@ -37,10 +38,15 @@ OUTPUT_FILE = os.getenv('OUTPUT_FILE', 'harvested_properties.json')
 PROGRESS_FILE = os.getenv('PROGRESS_FILE', 'scraper_progress.json')
 LOG_FILE = os.getenv('LOG_FILE', 'production_scraper.log')
 ERROR_SCREENSHOT_DIR = os.getenv('ERROR_SCREENSHOT_DIR', 'error_screenshots')
-MAX_CONSECUTIVE_NO_NEW = 3  # Stop after 3 consecutive clicks with no new links
+MAX_CONSECUTIVE_NO_NEW = 5  # Stop after 5 consecutive clicks with no new links (increased for slower loading)
 RETRY_ATTEMPTS = 3  # Retry failed clicks 3 times
 CLICK_TIMEOUT = 30  # Maximum seconds to wait for a click to complete
 MAX_RUNTIME_HOURS = int(os.getenv('MAX_RUNTIME_HOURS', '12'))  # Maximum runtime
+
+# Realistic timing (human-like behavior)
+MIN_WAIT_BETWEEN_CLICKS = float(os.getenv('MIN_WAIT_BETWEEN_CLICKS', '3'))  # Minimum seconds between clicks
+MAX_WAIT_BETWEEN_CLICKS = float(os.getenv('MAX_WAIT_BETWEEN_CLICKS', '7'))  # Maximum seconds between clicks
+PAGE_LOAD_WAIT = float(os.getenv('PAGE_LOAD_WAIT', '5'))  # Wait for content to load after click
 
 # ============================================================================
 # SETUP
@@ -73,11 +79,14 @@ class ProductionHarvester:
         signal.signal(signal.SIGTERM, self.signal_handler)
 
         logger.info("=" * 70)
-        logger.info("PRODUCTION SELENIUM HARVESTER")
+        logger.info("PRODUCTION SELENIUM HARVESTER - REALISTIC TIMING")
         logger.info(f"Max clicks: {MAX_CLICKS}")
         logger.info(f"Headless: {HEADLESS}")
         logger.info(f"Start URL: {START_URL}")
         logger.info(f"Output: {OUTPUT_FILE}")
+        logger.info(f"Timing: {MIN_WAIT_BETWEEN_CLICKS}-{MAX_WAIT_BETWEEN_CLICKS}s between clicks")
+        logger.info(f"Page load wait: {PAGE_LOAD_WAIT}s + random(0-2s)")
+        logger.info(f"Max consecutive no-new: {MAX_CONSECUTIVE_NO_NEW}")
         logger.info(f"Max runtime: {MAX_RUNTIME_HOURS} hours")
         logger.info("=" * 70)
 
@@ -267,7 +276,7 @@ class ProductionHarvester:
             return None
 
     def click_show_more(self):
-        """Click Show More with retry logic"""
+        """Click Show More with retry logic and realistic delays"""
 
         for attempt in range(RETRY_ATTEMPTS):
             try:
@@ -279,18 +288,26 @@ class ProductionHarvester:
                     logger.warning("Show More button not found")
                     return False
 
-                # Scroll into view
-                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", button)
-                time.sleep(0.5)
+                # Random delay before scrolling (human-like)
+                time.sleep(random.uniform(0.5, 1.5))
+
+                # Scroll into view smoothly
+                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center', behavior: 'smooth'});", button)
+
+                # Random delay after scrolling
+                time.sleep(random.uniform(0.8, 2.0))
 
                 # Click
                 self.driver.execute_script("arguments[0].click();", button)
                 self.clicks_performed += 1
 
-                # Wait for content to load
-                time.sleep(1.5)
-
                 logger.info(f"✓ Click #{self.clicks_performed} - Show More clicked")
+
+                # Wait for content to load (longer, realistic wait)
+                wait_time = random.uniform(PAGE_LOAD_WAIT, PAGE_LOAD_WAIT + 2)
+                logger.info(f"  Waiting {wait_time:.1f}s for content to load...")
+                time.sleep(wait_time)
+
                 return True
 
             except Exception as e:
@@ -299,7 +316,7 @@ class ProductionHarvester:
                     logger.error(f"Failed to click after {RETRY_ATTEMPTS} attempts")
                     self.take_error_screenshot(f"click_{self.clicks_performed}")
                     return False
-                time.sleep(1)
+                time.sleep(2)
 
         return False
 
@@ -351,6 +368,11 @@ class ProductionHarvester:
                 logger.error("Failed to load initial page. Exiting.")
                 return
 
+            # Human-like delay after page loads
+            initial_wait = random.uniform(2, 4)
+            logger.info(f"Waiting {initial_wait:.1f}s for initial page to fully load...")
+            time.sleep(initial_wait)
+
             # Harvest initial page
             logger.info("\nHarvesting initial page...")
             self.harvest_property_links()
@@ -396,6 +418,12 @@ class ProductionHarvester:
                     logger.info(f"Runtime: {(datetime.now() - self.start_time).total_seconds() / 60:.1f} min")
                     self.log_memory_usage()
                     logger.info(f"---\n")
+
+                # Random delay between clicks (human-like behavior)
+                if self.clicks_performed < MAX_CLICKS:
+                    delay = random.uniform(MIN_WAIT_BETWEEN_CLICKS, MAX_WAIT_BETWEEN_CLICKS)
+                    logger.info(f"  Waiting {delay:.1f}s before next click...")
+                    time.sleep(delay)
 
             # Final harvest
             logger.info("\nFinal harvest...")

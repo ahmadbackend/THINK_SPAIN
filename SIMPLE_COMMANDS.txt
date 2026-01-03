@@ -22,11 +22,28 @@ VIEW LOGS:
   tail -f production_scraper.log
 
 ========================================
+TIMING INFO (Realistic Human-Like):
+========================================
+
+Delays between clicks: 3-7 seconds (random)
+Page load wait: 5-7 seconds after each click
+Time per click: ~10-15 seconds average
+
+Estimated completion time:
+  100 clicks = ~16-25 hours
+  200 clicks = ~33-50 hours
+
+This is SLOW but RELIABLE!
+✅ Finds all properties
+✅ Won't get blocked
+✅ No timeout issues
+
+========================================
 WHAT TO DO NOW:
 ========================================
 
 1. Push from PC:
-   git add . && git commit -m "Background scripts" && git push
+   git add . && git commit -m "Realistic timing" && git push
 
 2. On VM:
    cd ~/THINK_SPAIN

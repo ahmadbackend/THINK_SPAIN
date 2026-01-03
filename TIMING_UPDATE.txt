@@ -1,0 +1,122 @@
+================================================================================
+REALISTIC TIMING UPDATE - CHANGES SUMMARY
+================================================================================
+
+✅ WHAT CHANGED:
+----------------
+
+1. RANDOMIZED DELAYS BETWEEN CLICKS:
+   - Before: 1.5 seconds fixed delay
+   - After: 3-7 seconds random delay (configurable)
+   - Human-like variation
+
+2. LONGER PAGE LOAD WAITS:
+   - Before: 1.5 seconds after click
+   - After: 5-7 seconds random wait after each click
+   - Gives website time to load new content properly
+
+3. SCROLL BEHAVIOR:
+   - Added smooth scrolling to button
+   - Random delays before/after scroll (0.5-2 seconds)
+   - More natural appearance
+
+4. INITIAL PAGE LOAD:
+   - Added 2-4 second random wait after page first loads
+   - Mimics human reading/browsing behavior
+
+5. INCREASED TOLERANCE:
+   - Changed MAX_CONSECUTIVE_NO_NEW from 3 to 5
+   - Won't stop as quickly if content loads slowly
+   - More patient with website delays
+
+================================================================================
+NEW TIMING CONFIGURATION:
+================================================================================
+
+Default Settings (Realistic):
+- MIN_WAIT_BETWEEN_CLICKS: 3 seconds
+- MAX_WAIT_BETWEEN_CLICKS: 7 seconds
+- PAGE_LOAD_WAIT: 5 seconds (+ random 0-2s)
+- Initial page wait: 2-4 seconds
+- Scroll delays: 0.5-2 seconds
+
+Total Time Per Click: ~10-15 seconds average
+Total Time For 500 Clicks: ~83-125 hours (3.5-5 days)
+Total Time For 100 Clicks: ~16-25 hours
+
+================================================================================
+ENVIRONMENT VARIABLES (Optional Customization):
+================================================================================
+
+You can override timing in .env file or export:
+
+# Faster (still realistic)
+export MIN_WAIT_BETWEEN_CLICKS=2
+export MAX_WAIT_BETWEEN_CLICKS=5
+export PAGE_LOAD_WAIT=3
+
+# Slower (very cautious)
+export MIN_WAIT_BETWEEN_CLICKS=5
+export MAX_WAIT_BETWEEN_CLICKS=10
+export PAGE_LOAD_WAIT=7
+
+# Ultra-fast (risky, might get detected)
+export MIN_WAIT_BETWEEN_CLICKS=1
+export MAX_WAIT_BETWEEN_CLICKS=2
+export PAGE_LOAD_WAIT=2
+
+================================================================================
+ESTIMATED COMPLETION TIMES:
+================================================================================
+
+With Default Settings (3-7s delays):
+
+50 clicks:   ~8-12 hours
+100 clicks:  ~16-25 hours
+200 clicks:  ~33-50 hours
+500 clicks:  ~83-125 hours (3.5-5 days)
+
+Benefits:
+✅ Less likely to be detected as bot
+✅ Website has time to load content properly
+✅ Should find more properties (no timeout issues)
+✅ More stable, fewer errors
+
+================================================================================
+WHAT TO DO:
+================================================================================
+
+1. Push from PC:
+   cd G:\THINK_SPAIN
+   git add production_harvester.py
+   git commit -m "Add realistic timing with 3-7s delays"
+   git push origin main
+
+2. On VM, pull and run:
+   cd ~/THINK_SPAIN
+   git pull origin main
+   ./resume.sh
+
+3. Monitor progress:
+   ./status.sh
+
+The scraper will now run much slower but more reliably!
+
+================================================================================
+LOG OUTPUT EXAMPLE:
+================================================================================
+
+✓ Click #1 - Show More clicked
+  Waiting 6.2s for content to load...
+  Harvested 50 new links | Total: 150
+  Waiting 5.8s before next click...
+
+✓ Click #2 - Show More clicked
+  Waiting 5.1s for content to load...
+  Harvested 48 new links | Total: 198
+  Waiting 4.3s before next click...
+
+You'll see the realistic delays in the logs!
+
+================================================================================
+
