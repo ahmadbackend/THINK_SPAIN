@@ -1,0 +1,17 @@
+# Quick Commands to Clean & Push to GitHub
+
+# Check what will be committed (excluded files won't show)
+git status
+
+# Add all files (respects .gitignore)
+git add .
+
+# Commit
+git commit -m "GCP VM deployment ready"
+
+# Push to GitHub
+git push origin main
+
+# Verify what's tracked
+git ls-files
+

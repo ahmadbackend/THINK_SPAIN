@@ -1,0 +1,51 @@
+========================================
+GCP VM QUICK START GUIDE
+========================================
+
+STEP 1: CREATE GCP VM
+---------------------
+gcloud compute instances create thinkspain-scraper \
+  --zone=us-central1-a \
+  --machine-type=e2-medium \
+  --image-family=ubuntu-2204-lts \
+  --image-project=ubuntu-os-cloud \
+  --boot-disk-size=20GB
+
+STEP 2: UPLOAD FILES
+--------------------
+gcloud compute scp --recurse G:\THINK_SPAIN thinkspain-scraper:~/ --zone=us-central1-a
+
+STEP 3: SSH INTO VM
+-------------------
+gcloud compute ssh thinkspain-scraper --zone=us-central1-a
+
+STEP 4: RUN SETUP (ONCE)
+-------------------------
+cd THINK_SPAIN
+chmod +x setup_gcp.sh run_gcp.sh
+./setup_gcp.sh
+
+STEP 5: START HARVESTER
+-----------------------
+./run_gcp.sh
+
+STEP 6: DOWNLOAD RESULTS
+------------------------
+(From your local machine)
+gcloud compute scp thinkspain-scraper:~/THINK_SPAIN/harvested_properties.json . --zone=us-central1-a
+
+========================================
+MONITORING (Optional)
+========================================
+
+Check progress:
+  tail -f production_scraper.log
+
+Check if running:
+  ps aux | grep python
+
+Stop manually:
+  pkill -f production_harvester.py
+
+========================================
+
