@@ -1,0 +1,64 @@
+================================================================================
+RUN SCRAPER IN BACKGROUND (Survives SSH Disconnect)
+================================================================================
+
+OPTION 1: nohup (Simple Background Process)
+--------------------------------------------
+./run_background.sh
+
+✓ Runs in background
+✓ Survives SSH disconnect
+✓ Logs to production_scraper.log
+✓ Simple and reliable
+
+Check: ./status.sh
+Stop:  ./stop.sh
+
+
+OPTION 2: screen (Reattachable Session) - RECOMMENDED
+------------------------------------------------------
+./run_screen.sh
+
+✓ Runs in background
+✓ Survives SSH disconnect
+✓ Can reattach to see live output
+✓ Best for monitoring
+
+Reattach: screen -r thinkspain
+Detach:   Ctrl+A then D (inside session)
+Check:    ./status.sh
+Stop:     ./stop.sh
+
+
+OPTION 3: Run in Foreground (Stops When SSH Closes)
+----------------------------------------------------
+./run_simple.sh
+
+✗ Stops when you close SSH
+✓ See output directly
+✓ Good for testing
+
+
+================================================================================
+QUICK COMMANDS
+================================================================================
+
+Start in background:     ./run_background.sh  OR  ./run_screen.sh
+Check status:            ./status.sh
+View logs:               tail -f production_scraper.log
+Stop scraper:            ./stop.sh
+Reattach to screen:      screen -r thinkspain
+
+
+================================================================================
+WHAT TO USE
+================================================================================
+
+For production (leave running 12 hours):
+  → Use ./run_screen.sh (can check anytime)
+
+For quick test (you'll stay connected):
+  → Use ./run_simple.sh
+
+================================================================================
+

@@ -13,8 +13,16 @@ if pgrep -f "production_harvester.py" > /dev/null; then
     PID=$(pgrep -f "production_harvester.py")
     echo "  PID: $PID"
     echo "  Runtime: $(ps -o etime= -p $PID)"
+    echo "  Memory: $(ps -o rss= -p $PID | awk '{printf "%.1f MB\n", $1/1024}')"
 else
     echo "✗ Harvester is NOT running"
+fi
+
+# Check for screen session
+if screen -list | grep -q thinkspain; then
+    echo ""
+    echo "Screen session 'thinkspain' is active"
+    echo "  Reattach with: screen -r thinkspain"
 fi
 
 echo ""
