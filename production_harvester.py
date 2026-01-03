@@ -30,7 +30,7 @@ from pathlib import Path
 # ============================================================================
 # CONFIGURATION - Can be overridden with environment variables
 # ============================================================================
-MAX_CLICKS = int(os.getenv('MAX_CLICKS', '500'))
+MAX_CLICKS = int(os.getenv('MAX_CLICKS', '15627'))
 HEADLESS = os.getenv('HEADLESS', 'true').lower() == 'true'  # Default true for GCP
 START_URL = os.getenv('START_URL', 'https://www.thinkspain.com/property-for-sale')
 OUTPUT_FILE = os.getenv('OUTPUT_FILE', 'harvested_properties.json')
