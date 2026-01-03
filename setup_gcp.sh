@@ -23,14 +23,10 @@ sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable
 sudo apt-get update
 sudo apt-get install -y google-chrome-stable
 
-# Install ChromeDriver
-echo "Installing ChromeDriver..."
-CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
-CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION%%.*}")
-wget -N "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip" -P ~/
-sudo unzip -o ~/chromedriver_linux64.zip -d /usr/local/bin/
-sudo chmod +x /usr/local/bin/chromedriver
-rm ~/chromedriver_linux64.zip
+# ChromeDriver (handled automatically by undetected-chromedriver)
+echo "ChromeDriver will be managed automatically by undetected-chromedriver package"
+CHROME_VERSION=$(google-chrome --version)
+echo "Chrome installed: $CHROME_VERSION"
 
 # Install required system libraries
 echo "Installing system dependencies..."

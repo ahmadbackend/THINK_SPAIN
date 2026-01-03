@@ -26,9 +26,11 @@ if [ -f .env ]; then
     export $(cat .env | grep -v '^#' | xargs)
 fi
 
-# Run with virtual display (for headless mode)
+# Run the harvester
 echo "Starting harvester in headless mode..."
-xvfb-run -a python3 production_harvester.py
+echo "Press Ctrl+C to stop gracefully at any time"
+echo ""
+python3 production_harvester.py
 
 echo ""
 echo "====================================================="
